@@ -12,7 +12,7 @@ You can even have award a winning house at your Holiday party (trophy not includ
 
 # What you'll need
 * An AWS (Amazon Web Services) Account - I recommend using a separate AWS account if you already have production resources in AWS
-* Slack and enough priviledges to create custom Slash commands - ask your IT specialist if you don't have this
+* Slack and enough privileges to create custom Slash commands - ask your IT specialist if you don't have this
 * Some familiarity with Python - Harry Potter wasn't afraid to confront a giant snake and you shouldn't be either
 
 # The Database
