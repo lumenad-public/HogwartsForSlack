@@ -1,5 +1,6 @@
 # LumenAd-Hogwarts
 A custom app for distributing points via slash commands in Slack
+![App In Use](/images/in_use.png)
 
 # Introduction
 Do you want to be a wizard like Harry Potter and go to Hogwarts?  
@@ -8,7 +9,7 @@ If you follow these instructions you'll be able to have your very House Cup app 
 You can give points to your friends and colleagues who take time out of their day to help you out.
 You can take points when someone double-books the conference room.  
 You can even have award a winning house at your Holiday party (trophy not included).  This repo will teach you what you need to know.   
-![AWS Sign In](/images/house_cup_2018.png)
+![House Cup Ceremony](/images/house_cup_2018.png)
 
 # What you'll need
 * An AWS (Amazon Web Services) Account - I recommend using a separate AWS account if you already have production resources in AWS
