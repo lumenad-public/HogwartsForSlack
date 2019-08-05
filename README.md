@@ -46,9 +46,9 @@ Optionals:
 
 You may be wondering where to set these attributes in DynamoDB.  The answer is nowhere.  DynamoDB is a NoSQL database meaning it's unstructured.  For the uninitiated that means you can have highly varied data all in the same table.  In our example you could have a row with 3 attributes and a row with 30 attributes so long as they both have valid Primary Keys.  The easiest way to set this up is to store the data of your members with the attributes you want filled out then upload the data to DynamoDB.   
 # Populating the Database
-The one part of this whole process I haven't come with a good solution to is putting everyone in houses.  When I did this I had to go around to everyone in the company and ask what house they'd like to be in and keep track in a .csv file.  This was kind of a pain, but there's not really any other way to do it.  
+I have several options for this step.  When I did this I had to go around to everyone in the company and ask what house they'd like to be in and keep track in a .csv file.  This was kind of a pain.  To make sure you don't have to do that I created a command to let users add themselves to houses: `/points add <house>`.  This will create an entry for the user (if a row doesn't already exist).  
 
-You could have people fill out their own houses, but I had a hard time just getting everyone to come up with a house, let alone write it down.  There's also an option to put everyone in the database then create a command that lets them move themselves.  I didn't do this because I thought people would be switching all the time, but that may be a better solution for you.  Either way you'll need a default house for everyone who can't decide. I chose Hufflepuff as the default because of a quote from the books: <em>"Good Hufflepuff, she took the rest and taught them all she knew"</em>
+If you want to act as a human sorting hat you could create a .csv of everyone's information like I did originally.  If you do you'll need a default house for everyone who can't decide. I chose Hufflepuff as the default because of a quote from the books: <em>"Good Hufflepuff, she took the rest and taught them all she knew"</em>
 
 Here's the original javascript I used to upload the data to DynamoDB from a csv.  Depending on how you collect and store you data you may be able to use this snippet unmodified or you may need something completely different.  This is more to give you an idea of how I did it.  May it help you in your travels.
 ```const fs = require('fs')
@@ -73,7 +73,7 @@ data.forEach((item) => {
 })
 ```
 
-Alternatively you can enter each user manually through the UI.  Select `Create Item` on your table.
+Finally you can enter each user manually through the UI.  Select `Create Item` on your table.
 ![AWS DynamoDB Settings](/images/aws_dynamodb_create_item.png)
 
 Then you can enter your users' information via the `Tree` editor or the `JSON` editor.  This would be pretty laborious if you were gonna add 50 users, but if you've only got a few users this may be easier than attempting an automated upload.
