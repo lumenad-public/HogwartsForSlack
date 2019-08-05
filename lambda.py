@@ -312,6 +312,42 @@ def parseMessage(words):
     msg = " ".join(msg_components) if len(msg_components) > 0 else ""
     return users,points,msg
 
+# parse the desired house from the new user-added command
+# This is mostly so that users don't have to type the names
+# of the houses they want to be in.
+# Gryffindor is pretty tricky to spell if you haven't seen it in a while.
+def parseHouseTarget(target):
+    t = target.lower().strip()
+    if t in ["g","gryffindor","griffindor"]:
+        return "gryffindor"
+    elif t in ["s","slytherin"]:
+        return "slytherin"
+    elif t in ["r","ravenclaw"]:
+        return "ravenclaw"
+    else:
+        return "hufflepuff"
+
+# Create an entry in the database for the user.
+# This can get a little messy if the
+def createWizard(table,user,house,fullname):
+    user = cleanName(user)
+    user_found, _user_permission, _user_demented, _fancy_user = checkUserPermissions(table,user)
+    if not user_found:
+        response = table.put_item(
+           Item={
+                'name': user,
+                'house': house,
+                'points': 0, # points start at 0
+                'can_has':True,
+                'demented':False,
+                'fullname': fullname
+            }
+        )
+        ret = {"text":"Welcome {} to {}".format(fullname,house.capitalize())}
+    else:
+        ret= {"text":"{} already exists".format(user)}
+    return ret
+
 # The event handler
 # This is the part lambda sends requests through
 def handlePoints(event, context):
@@ -345,6 +381,8 @@ def handlePoints(event, context):
             # If the request contains a text field then the user has passed some parameters.
             # We then split the text field on space character.
             text = params['text'][0].split(" ")
+            # Get the name of the person executing the command 
+            assigner = params['user_name'][0]
             try: # generic try-catch so if something breaks it doesn't cause an ugly (and scary) 502 message
                 # This block looks a bit confusing, but because Slack passes the parameters of a slash command
                 # as one big string we have to do a bunch of string checks and parsing in order to get the precious data.
@@ -362,35 +400,43 @@ def handlePoints(event, context):
                         user = cleanName(text[0])
                         ret = getUserPoints(table,user)
                 else:
-                    # We've covered the len(text) == 0 (by checking to see if it's present)
-                    # and we just covered the len(text) == 1 case above.
-                    # Anything else will be 2 or more.
-                    # NOTE: We don't check for len(text) == 2 because the message after points
-                    # could make text any length after splitting on spaces.
-                    users,points,msg = parseMessage(text)
-                    print(users,points,msg)
-                    # One last check before we proceed.
-                    # We check to see if the assigner is an Admin.
-                    # If not we don't allow them to give themselves points.
-                    # The only reason admins can give themselves points
-                    # is so I can test the app on myself after updates.
-                    assigner = params['user_name'][0]
-                    agg_ret = []
-                    for user in users:
-                        if user == assigner and assigner not in ADMIN:
-                            # If they're not an admin and they're trying to alter their own point total we
-                            # return a passive-agressive message telling them of their wrong-doing.
-                            # If you're wondering about the _ and :thumbsdown: in the message those are special
-                            # decorators that Slack will interpret and display as italic text and an emoji respectively.
-                            ret = getUserPoints(table,user)
-                            ret["attachments"] = [{"text":"_It's considered bad form to give youself points. Your point total has not changed_ :thumbsdown:"}]
-                            agg_ret = False
-                            break
+                    # New command to let users add themselves to houses
+                    if text[0] in ["add","house","+"]:
+                        house_target = parseHouseTarget(text[1])
+                        if len(text) > 2: # The user attempted to add a full name
+                            fname = " ".join(text[2:])
+                            ret = createWizard(table,assigner,house_target,fname)
                         else:
-                            # If everything is okay up to this point we proceed to actually allocating the points.
-                            agg_ret.append(allocatePoints(table,user,points,assigner,msg))
-                    if agg_ret:
-                        ret = {"text": "\n".join(a['text'] for a in agg_ret)}
+                            ret = {"text":"You must provide a full name to add yourself to a house.\nTry something like `/points add g Harry Potter`"}
+                    else:
+                        # We've covered the len(text) == 0 (by checking to see if it's present)
+                        # and we just covered the len(text) == 1 case above.
+                        # Anything else will be 2 or more.
+                        # NOTE: We don't check for len(text) == 2 because the message after points
+                        # could make text any length after splitting on spaces.
+                        users,points,msg = parseMessage(text)
+                        print(users,points,msg)
+                        # One last check before we proceed.
+                        # We check to see if the assigner is an Admin.
+                        # If not we don't allow them to give themselves points.
+                        # The only reason admins can give themselves points
+                        # is so I can test the app on myself after updates.
+                        agg_ret = []
+                        for user in users:
+                            if user == assigner and assigner not in ADMIN:
+                                # If they're not an admin and they're trying to alter their own point total we
+                                # return a passive-agressive message telling them of their wrong-doing.
+                                # If you're wondering about the _ and :thumbsdown: in the message those are special
+                                # decorators that Slack will interpret and display as italic text and an emoji respectively.
+                                ret = getUserPoints(table,user)
+                                ret["attachments"] = [{"text":"_It's considered bad form to give youself points. Your point total has not changed_ :thumbsdown:"}]
+                                agg_ret = False
+                                break
+                            else:
+                                # If everything is okay up to this point we proceed to actually allocating the points.
+                                agg_ret.append(allocatePoints(table,user,points,assigner,msg))
+                        if agg_ret:
+                            ret = {"text": "\n".join(a['text'] for a in agg_ret)}
             except Exception as e:
                 # Generic error catch.
                 ret = {"text": "something went wrong: {}".format(e)}
