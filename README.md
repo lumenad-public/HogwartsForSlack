@@ -83,10 +83,13 @@ NOTE: You don't need to add `title` or `nickname` to users, the code provided wo
 
 # The Code - Lambda
 ![AWS Lambda](/images/aws_lambda_service.png)
-This part is pretty straightforward.  Navigate to AWS Lambda from the Services dropdown in the top bar and select `Create Function`.  Select `Author from Scratch` and enter a name for your function.  The name doesn't matter, but keep it short because it'll end up as a url parameter later.  For a Runtime select `Python 3.6`.  As for Permissions this part can get a little tricky depending on how your AWS account is configured. You'll need an AWS user role that can execute lambda function and full access for DynamoDB at a minimum, but I also added full Cloudwatch permissions because it's super helpful for debugging.  Whether you want to create that role ahead of time or add the permissions to the role created in this step is up to you.  
+This part is pretty straightforward.  Navigate to AWS Lambda from the Services dropdown in the top bar and select `Create Function`.  Select `Author from Scratch` and enter a name for your function.  The name doesn't matter, but keep it short because it'll end up as a url parameter later.  For a Runtime select `Python 3.6`.  As for Permissions this part can get a little tricky depending on how your AWS account is configured. The one catch here is to make sure you use the same region as your database to make connecting easier.
 ![AWS Lambda Create Function](/images/aws_lambda_create_function.png)
 
-The one catch here is to make sure you use the same region as your database to make connecting easier.  You can use the code I've provided with this repository and as long as the names of your attributes and tables match it should be plug and play.  You will need to add your Slack key as an environment variable in a later step.
+In this step AWS will create a default role for your function.  Roles are just a collection of permissions to grant your function access to other services.  For example, by default your function won't be able to interact with DynamoDB.  This is to keep your individual services secure.  However, you'll need an AWS role that can execute lambda function and full access for DynamoDB in order to run the code.  I also recommend adding full Cloudwatch permissions because it's super helpful for debugging.  You'll need to hop over to IAM (Idenity & Access Management) and add the policies in `Attach policies`.  The two policies you'll need to add to your role are `AmazonDynamoDBFullAccess` & `CloudWatchFullAccess`.
+![AWS Lambda Create Function](/images/aws_iam_role.png)
+
+ When you're done adding policies to your role return to Lambda.  You can use the code I've provided with this repository and as long as the names of your attributes and tables match it should be plug and play.  You will need to add your Slack key as an environment variable in a later step.
 ![AWS Lambda Create Function](/images/aws_lambda_code.png)
 
 Finally we need to attach an http endpoint to our new Lambda function.  Select `Add Trigger` in the Lambda Designer panel and select `API Gateway`.  

@@ -331,7 +331,7 @@ def parseHouseTarget(target):
 # This can get a little messy if the
 def createWizard(table,user,house,fullname):
     user = cleanName(user)
-    user_found, _user_permission, _user_demented, _fancy_user = checkUserPermissions(table,user)
+    user_found, _user_permission, _fancy_user = checkUserPermissions(table,user)
     if not user_found:
         response = table.put_item(
            Item={
@@ -339,7 +339,6 @@ def createWizard(table,user,house,fullname):
                 'house': house,
                 'points': 0, # points start at 0
                 'can_has':True,
-                'demented':False,
                 'fullname': fullname
             }
         )
@@ -381,7 +380,7 @@ def handlePoints(event, context):
             # If the request contains a text field then the user has passed some parameters.
             # We then split the text field on space character.
             text = params['text'][0].split(" ")
-            # Get the name of the person executing the command 
+            # Get the name of the person executing the command
             assigner = params['user_name'][0]
             try: # generic try-catch so if something breaks it doesn't cause an ugly (and scary) 502 message
                 # This block looks a bit confusing, but because Slack passes the parameters of a slash command
